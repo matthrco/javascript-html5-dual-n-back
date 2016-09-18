@@ -1,0 +1,211 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+    <title>Dual N-Back</title>
+	<script type="text/javascript">
+var side = 960;
+var actionsLeft=-1, maxActions;
+var t;
+var x, y;
+var N;
+var posQueue, soundQueue;
+var bSound,fSound,kSound,nSound,pSound,qSound,rSound,tSound;
+var aPressed, positionCorrect;
+var lPressed, soundCorrect;
+var goodPos, badPos, missPos;
+var goodSound, badSound, misrSound;
+var context;
+var sound;
+
+function draw(soundBool){
+	// Create the canvas (Neccessary for IE because it doesn't know what a canvas element is)
+	var canvasDiv = document.getElementById('myCanvas');
+	var canvas = document.createElement('canvas');
+	canvas.setAttribute('width', side);
+	canvas.setAttribute('height', side);
+	canvas.setAttribute('id', 'canvas');
+	canvasDiv.appendChild(canvas);
+	var spatialButton = document.createElement('button');
+	spatialButton.style.height = '400px';
+	spatialButton.style.width = '479px';
+	spatialButton.style.marginTop = '10px';
+	spatialButton.style.fontSize = '100px';
+	spatialButton.appendChild(document.createTextNode("Spatial"));
+	spatialButton.addEventListener("click", spatialPress);
+	var soundButton = document.createElement('button');
+	soundButton.style.height = '400px';
+	soundButton.style.width = '479px';
+	soundButton.style.marginTop = '10px';
+	soundButton.style.fontSize = '100px';
+	soundButton.appendChild(document.createTextNode("Audio"));
+	soundButton.addEventListener("click", soundPress);
+	document.body.appendChild(spatialButton);
+	document.body.appendChild(soundButton);
+	if(typeof G_vmlCanvasManager != 'undefined'){
+		canvas = G_vmlCanvasManager.initElement(canvas);
+	}
+	context = canvas.getContext("2d"); // Grab the 2d canvas context
+	// Note: The above code is a workaround for IE 8 and lower. Otherwise we could have used:
+	//     context = document.getElementById('canvas').getContext("2d");
+	context.fillStyle = 'black';
+	//draw grid 
+	for (i=0;i<4;i++){
+		context.beginPath();
+		context.moveTo (0, i*(side/3));
+		context.lineTo (side, i*(side/3)); 
+		context.stroke(); 
+		context.beginPath();
+		context.moveTo (i*(side/3), 0);
+		context.lineTo (i*(side/3), side); 
+		context.stroke();
+	}
+	context.beginPath();
+	context.moveTo ((side/2),(side/2)+(side/15));
+	context.lineTo ((side/2),(side/2)-(side/15)); 
+	context.stroke();
+	context.beginPath();
+	context.moveTo ((side/2)+(side/15),(side/2));
+	context.lineTo ((side/2)-(side/15),(side/2)); 
+	context.stroke();
+	bSound=document.getElementById('soundb');
+	fSound=document.getElementById('soundf');
+	kSound=document.getElementById('soundk');
+	nSound=document.getElementById('soundn');
+	pSound=document.getElementById('soundp');
+	qSound=document.getElementById('soundq');
+	rSound=document.getElementById('soundr');
+	tSound=document.getElementById('soundt');
+	/*bSound.play();
+	fSound.play();
+	kSound.play();
+	nSound.play();
+	pSound.play();
+	qSound.play();
+	rSound.play();
+	tSound.play();
+	//start game*/
+	sound = soundBool;
+	nback(1);
+}
+
+//draws white over the last box
+function myerase(){
+	context.clearRect(x*(side/3)+1, y*(side/3)+1, (side/3)-2, (side/3)-2);
+}
+
+function nback(n, sound){
+	N = n;
+	posQueue = [];
+	soundQueue = [];
+	for(var e=0; e<N; e++){
+		posQueue.push(-1);
+		soundQueue.push(-1);
+	}
+	actionsLeft=15;
+	maxActions = actionsLeft;
+	goodPos = 0; 
+	badPos = 0; 
+	missPos = 0;
+	goodSound = 0; 
+	badSound = 0; 
+	misrSound = 0;
+	t=setTimeout(mynext(),1000);
+}
+
+function spatialPress(){
+	aPressed = true;
+}
+
+function soundPress(){
+	lPressed = true;
+}
+
+function mynext(){
+	//not first
+	if (actionsLeft!=maxActions) {
+		if (soundCorrect) {
+			if (lPressed) {
+				goodSound++;
+			} else {
+				misrSound++;
+			}
+		} else {
+			if (lPressed) {
+				badSound++;
+			}
+		}
+		if (positionCorrect) {
+			if (aPressed) {
+				goodPos++;
+			} else {
+				missPos++;
+			}
+		} else {
+			if (aPressed) {
+				badPos++;
+			}
+		}
+	}
+	//random (0-7)
+	soundQueue.push(Math.floor(Math.random()*8));
+	//if sound is enabled
+	if (sound) {
+		if (soundQueue[N]===0) {bSound.play();}
+		if (soundQueue[N]===1) {fSound.play();}
+		if (soundQueue[N]===2) {kSound.play();}
+		if (soundQueue[N]===3) {nSound.play();}
+		if (soundQueue[N]===4) {pSound.play();}
+		if (soundQueue[N]===5) {qSound.play();}
+		if (soundQueue[N]===6) {rSound.play();}
+		if (soundQueue[N]===7) {tSound.play();}
+	}
+	//random (0-7)
+	posQueue.push(Math.floor(Math.random()*8));
+	if (posQueue[N]===0) {x = 0; y=0;}
+	if (posQueue[N]===1) {x = 1; y=0;}
+	if (posQueue[N]===2) {x = 2; y=0;}
+	if (posQueue[N]===3) {x = 0; y=1;}
+	if (posQueue[N]===4) {x = 2; y=1;}
+	if (posQueue[N]===5) {x = 0; y=2;}
+	if (posQueue[N]===6) {x = 1; y=2;}
+	if (posQueue[N]===7) {x = 2; y=2;}
+	
+	//reset if button pressed or match
+	soundCorrect = false; lPressed = false;
+	//n ago same
+	if (soundQueue.shift()===soundQueue[N-1]) {soundCorrect = true;}
+	//reset match or button pressed
+	positionCorrect = false; aPressed = false;
+	//n ago same
+	if (posQueue.shift()===posQueue[N-1]) {positionCorrect = true;}
+	//if place enabled
+	if (i>0) {
+		context.fillStyle = 'black';
+		context.fillRect(x*(side/3)+2, y*(side/3)+2, (side/3)-4, (side/3)-4);
+	}
+	actionsLeft--;
+	if (actionsLeft>0) {
+		setTimeout(myerase,1000);
+		setTimeout(mynext,3000);
+	} else {
+		setTimeout(myerase,1000);
+		setTimeout(taskend,3000);
+	}
+}
+
+function taskend(){
+	alert("sound: " +(maxActions - misrSound - badSound)+"/"+maxActions);
+	alert("pos: " +(maxActions - missPos - badPos)+"/"+maxActions);
+}
+	</script>
+  </head>
+  <body onload="draw(true)">
+    
+		<div id="myCanvas"></div>
+		<audio id="soundb" src="./b.mp3"></audio>
+		<audio id="soundf" src="./f.mp3"></audio>
+		<audio id="soundk" src="./k.mp3"></audio>
+		<audio id="soundn" src="./n.mp3"></audio>
+		<audio id="soundp" src="./p.mp3"></audio>
+		<audio id="soundq" src="./q.mp3"></audio>
+		<audio id="soundr" src="./r.mp3"></audio>
+		<audio id="soundt" src="./t.mp3"></audio>
+</center></body></html>
